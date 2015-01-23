@@ -15,6 +15,8 @@
 		A4C235EC1A6F936D008F6068 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A4C235EB1A6F936D008F6068 /* Images.xcassets */; };
 		A4C235EF1A6F936D008F6068 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = A4C235ED1A6F936D008F6068 /* LaunchScreen.xib */; };
 		A4C235FB1A6F936E008F6068 /* MigrationLessonTests.m in Sources */ = {isa = PBXBuildFile; fileRef = A4C235FA1A6F936E008F6068 /* MigrationLessonTests.m */; };
+		A4C236061A6F9CAB008F6068 /* Model.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = A4C236051A6F9CAB008F6068 /* Model.xcmappingmodel */; };
+		A4C236091A6F9EA3008F6068 /* PersonToPerson.m in Sources */ = {isa = PBXBuildFile; fileRef = A4C236081A6F9EA3008F6068 /* PersonToPerson.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -42,6 +44,10 @@
 		A4C235F41A6F936E008F6068 /* MigrationLessonTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MigrationLessonTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A4C235F91A6F936E008F6068 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A4C235FA1A6F936E008F6068 /* MigrationLessonTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MigrationLessonTests.m; sourceTree = "<group>"; };
+		A4C236041A6F9B96008F6068 /* MigrationLesson 2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "MigrationLesson 2.xcdatamodel"; sourceTree = "<group>"; };
+		A4C236051A6F9CAB008F6068 /* Model.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; name = Model.xcmappingmodel; path = ../Model.xcmappingmodel; sourceTree = "<group>"; };
+		A4C236071A6F9EA3008F6068 /* PersonToPerson.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PersonToPerson.h; sourceTree = "<group>"; };
+		A4C236081A6F9EA3008F6068 /* PersonToPerson.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PersonToPerson.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,6 +71,8 @@
 		A4C235CF1A6F936D008F6068 = {
 			isa = PBXGroup;
 			children = (
+				A4C236071A6F9EA3008F6068 /* PersonToPerson.h */,
+				A4C236081A6F9EA3008F6068 /* PersonToPerson.m */,
 				A4C235DA1A6F936D008F6068 /* MigrationLesson */,
 				A4C235F71A6F936E008F6068 /* MigrationLessonTests */,
 				A4C235D91A6F936D008F6068 /* Products */,
@@ -91,6 +99,7 @@
 				A4C235EB1A6F936D008F6068 /* Images.xcassets */,
 				A4C235ED1A6F936D008F6068 /* LaunchScreen.xib */,
 				A4C235E21A6F936D008F6068 /* MigrationLesson.xcdatamodeld */,
+				A4C236051A6F9CAB008F6068 /* Model.xcmappingmodel */,
 				A4C235DB1A6F936D008F6068 /* Supporting Files */,
 			);
 			path = MigrationLesson;
@@ -222,9 +231,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A4C236091A6F9EA3008F6068 /* PersonToPerson.m in Sources */,
 				A4C235E41A6F936D008F6068 /* MigrationLesson.xcdatamodeld in Sources */,
 				A4C235E11A6F936D008F6068 /* AppDelegate.m in Sources */,
 				A4C235E71A6F936D008F6068 /* ViewController.m in Sources */,
+				A4C236061A6F9CAB008F6068 /* Model.xcmappingmodel in Sources */,
 				A4C235DE1A6F936D008F6068 /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -418,6 +429,7 @@
 				A4C236001A6F936E008F6068 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		A4C236011A6F936E008F6068 /* Build configuration list for PBXNativeTarget "MigrationLessonTests" */ = {
 			isa = XCConfigurationList;
@@ -426,6 +438,7 @@
 				A4C236031A6F936E008F6068 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 
@@ -433,9 +446,10 @@
 		A4C235E21A6F936D008F6068 /* MigrationLesson.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
+				A4C236041A6F9B96008F6068 /* MigrationLesson 2.xcdatamodel */,
 				A4C235E31A6F936D008F6068 /* MigrationLesson.xcdatamodel */,
 			);
-			currentVersion = A4C235E31A6F936D008F6068 /* MigrationLesson.xcdatamodel */;
+			currentVersion = A4C236041A6F9B96008F6068 /* MigrationLesson 2.xcdatamodel */;
 			path = MigrationLesson.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;

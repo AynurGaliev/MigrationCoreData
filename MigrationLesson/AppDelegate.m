@@ -14,41 +14,126 @@
 
 @implementation AppDelegate
 
-
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-    // Override point for customization after application launch.
-    return YES;
-}
-
-- (void)applicationWillResignActive:(UIApplication *)application {
-    // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
-    // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
-}
-
-- (void)applicationDidEnterBackground:(UIApplication *)application {
-    // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
-    // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
-}
-
-- (void)applicationWillEnterForeground:(UIApplication *)application {
-    // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
-}
-
-- (void)applicationDidBecomeActive:(UIApplication *)application {
-    // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
-}
-
-- (void)applicationWillTerminate:(UIApplication *)application {
-    // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
-    // Saves changes in the application's managed object context before the application terminates.
-    [self saveContext];
-}
-
 #pragma mark - Core Data stack
 
 @synthesize managedObjectContext = _managedObjectContext;
 @synthesize managedObjectModel = _managedObjectModel;
 @synthesize persistentStoreCoordinator = _persistentStoreCoordinator;
+
+
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    
+    if ([self isMigrationNeeded]) {
+        [self migrate:nil];
+    }
+    return YES;
+}
+
+- (void)applicationWillTerminate:(UIApplication *)application {
+    [self saveContext];
+}
+
+- (NSURL *)sourceStoreURL {
+    NSURL *dir = [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject];
+    NSURL *oldFile = [dir URLByAppendingPathComponent:@"MigrationLesson.sqlite"];
+    return oldFile;
+}
+
+- (BOOL)isMigrationNeeded {
+    
+    NSError *error = nil;
+    NSDictionary *sourceMetadata = [NSPersistentStoreCoordinator metadataForPersistentStoreOfType:NSSQLiteStoreType
+                                                                                              URL:[self sourceStoreURL]
+                                                                                            error:&error];
+    BOOL isMigrationNeeded = NO;
+    if (sourceMetadata != nil) {
+        
+        NSManagedObjectModel *destinationModel = [self managedObjectModel];
+        // Migration is needed if destinationModel is NOT compatible
+        isMigrationNeeded = ![destinationModel isConfiguration:nil compatibleWithStoreMetadata:sourceMetadata];
+    }
+    
+    NSLog(@"isMigrationNeeded: %@", (isMigrationNeeded == YES) ? @"YES" : @"NO");
+    return isMigrationNeeded;
+}
+
+
+- (BOOL)migrate:(NSError *__autoreleasing *)error {
+    
+    NSURL *sourceUrl = [self sourceStoreURL];
+    
+    // - Get metadata for source store from its URL with given type.
+    NSDictionary *sourceMetadata = [NSPersistentStoreCoordinator metadataForPersistentStoreOfType:NSSQLiteStoreType URL:sourceUrl error:error];
+    if (sourceMetadata == NO) {
+        NSLog(@"FAILED to create source meta data");
+        return NO;
+    }
+    
+    
+    // - Create model from source store meta deta,
+    NSManagedObjectModel *sourceModel = [NSManagedObjectModel mergedModelFromBundles:@[[NSBundle mainBundle]] forStoreMetadata:sourceMetadata];
+    if (sourceModel == nil) {
+        NSLog(@"FAILED to create source model, something wrong with source xcdatamodel.");
+        return NO;
+    }
+    
+    
+    NSManagedObjectModel *destinationModel = [self managedObjectModel];
+    NSMappingModel *mappingModel = [NSMappingModel mappingModelFromBundles:@[[NSBundle mainBundle]]
+                                                            forSourceModel:sourceModel
+                                                          destinationModel:destinationModel];
+    
+    
+    // - Create the destination store url
+    NSString *fileName = @"MigrationLesson_V2.sqlite";
+    NSURL *destinationStoreURL =  [[[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject] URLByAppendingPathComponent:fileName];
+    
+    
+    // - Migrate from source to latest matched destination model,
+    NSMigrationManager *manager = [[NSMigrationManager alloc] initWithSourceModel:sourceModel destinationModel:destinationModel];
+    BOOL didMigrate = [manager migrateStoreFromURL:sourceUrl
+                                              type:NSSQLiteStoreType
+                                           options:nil
+                                  withMappingModel:mappingModel
+                                  toDestinationURL:destinationStoreURL
+                                   destinationType:NSSQLiteStoreType
+                                destinationOptions:nil
+                                             error:error];
+    if (!didMigrate) {
+        return NO;
+    }
+    
+    NSLog(@"Migrating from source: %@ ===To=== %@", sourceUrl.path, destinationStoreURL.path);
+    
+    // Delete old sqlite file
+    NSError *err = nil;
+    NSFileManager *fm = [NSFileManager defaultManager];
+    if (![fm removeItemAtURL:sourceUrl error:&err]) {
+        NSLog(@"File delete failed.");
+        return NO;
+    }
+    
+    NSString *str1 = [NSString stringWithFormat:@"%@-shm",sourceUrl.path];
+    [fm removeItemAtURL:[NSURL fileURLWithPath:str1] error:&err];
+    str1 = [NSString stringWithFormat:@"%@-wal",sourceUrl.path];
+    [fm removeItemAtURL:[NSURL fileURLWithPath:str1] error:&err];
+    
+    // Copy into new location
+    if (![fm moveItemAtURL:destinationStoreURL toURL:sourceUrl error:&err]) {
+        NSLog(@"File move failed.");
+        return NO;
+    }
+    
+    NSLog(@"Migration successful");
+
+    return didMigrate;
+}
+
+
+
+
+
+
 
 - (NSURL *)applicationDocumentsDirectory {
     // The directory the application uses to store the Core Data store file. This code uses a directory named "FS.MigrationLesson" in the application's documents directory.
@@ -76,6 +161,9 @@
     _persistentStoreCoordinator = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:[self managedObjectModel]];
     NSURL *storeURL = [[self applicationDocumentsDirectory] URLByAppendingPathComponent:@"MigrationLesson.sqlite"];
     NSError *error = nil;
+//    NSDictionary *options = [NSDictionary dictionaryWithObjectsAndKeys:
+//                             [NSNumber numberWithBool:YES], NSMigratePersistentStoresAutomaticallyOption,
+//                             [NSNumber numberWithBool:YES], NSInferMappingModelAutomaticallyOption, nil];
     NSString *failureReason = @"There was an error creating or loading the application's saved data.";
     if (![_persistentStoreCoordinator addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:storeURL options:nil error:&error]) {
         // Report any error we got.
@@ -92,7 +180,6 @@
     
     return _persistentStoreCoordinator;
 }
-
 
 - (NSManagedObjectContext *)managedObjectContext {
     // Returns the managed object context for the application (which is already bound to the persistent store coordinator for the application.)
@@ -123,5 +210,6 @@
         }
     }
 }
+
 
 @end
